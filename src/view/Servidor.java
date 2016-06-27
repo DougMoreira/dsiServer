@@ -6,17 +6,21 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Date;
 import java.util.List;
 
 import controle.BLLDispositivo;
+import controle.BLLHistorico;
 
 import modelo.entidade.Comando;
 import modelo.entidade.Dispositivo;
+import modelo.entidade.Historico;
 
 public class Servidor extends Thread {
 
 	Socket conexao;
 	boolean auth = false;
+	Dispositivo dispositivo;
 
 	/**
 	 * @param args
@@ -32,7 +36,7 @@ public class Servidor extends Thread {
 				Object objeto = entradaCli.readObject();
 
 				if(objeto.getClass().getSimpleName().equals("Dispositivo")){
-					Dispositivo dispositivo = (Dispositivo) objeto;
+					Dispositivo dispositivoIni = (Dispositivo) objeto;
 					BLLDispositivo bllDispositivo = new BLLDispositivo();
 
 					// Pega a lista de todos os dispositivos cadastrados no banco de dados
@@ -40,30 +44,46 @@ public class Servidor extends Thread {
 
 					// Faz a comparação de MAC Adress e Pass no banco de dados
 					for(int i = 0; list.size() > i; i++){
-						if(list.get(i).getPass() == dispositivo.getPass()
-								&& list.get(i).getMac().equalsIgnoreCase(dispositivo.getMac()))
-							auth = true;
+						if(list.get(i).getPass() == dispositivoIni.getPass()
+								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()))
+							this.dispositivo = list.get(i);
+							this.auth = true;
 					}
 
 				}
-				else if(objeto.getClass().getSimpleName().equals("Comando")){
+				else if(objeto.getClass().getSimpleName().equals("Comando") && auth){
+
 					Comando comando = (Comando) objeto;
 
-					Process proc = Runtime.getRuntime().exec(comando.getParametros());
-
-					BufferedReader reader =  
-							new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-					String line = "";
-					while((line = reader.readLine()) != null) {
-						System.out.print(line + "\n");
+					if(comando.getParametros().equals("sair")){
+						conexao.close();
 					}
 
-					proc.waitFor();   
+					else{
+						
+						Historico historico = new Historico();
+						historico.setDataComando(new Date(System.currentTimeMillis()));
+						historico.setParametro(comando.getParametros());
+						historico.setCodigoDispositivo(dispositivo.getCodigo());
+						
+						BLLHistorico bllHistorico = new BLLHistorico();
+						bllHistorico.salvar(historico);
 
+						Process proc = Runtime.getRuntime().exec(comando.getParametros());
 
+						BufferedReader reader =  
+								new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+						String line = "";
+						while((line = reader.readLine()) != null) {
+							System.out.print(line + "\n");
+						}
+
+						proc.waitFor(); 
+
+					}
 				}
-				conexao.close();
+
 			} catch (IOException e) { 
 
 			} catch (ClassNotFoundException e) {
