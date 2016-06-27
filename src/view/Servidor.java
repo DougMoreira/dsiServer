@@ -25,24 +25,6 @@ public class Servidor extends Thread {
 		conexao = s;
 	}
 
-	public static void main(String[] args) {
-
-		try {
-			ServerSocket s = new ServerSocket(9998);
-			while (true) {
-				System.out.print("Esperando alguem se conectar...");
-				Socket conexao = s.accept();
-
-
-				System.out.println("Conectou!");
-				Thread t = new Servidor(conexao);
-				t.start();
-			}
-		} catch (IOException e) {
-			System.out.println("IOException: " + e);
-		}
-	}
-
 	public void run(){
 		while(true){
 			try {
