@@ -35,7 +35,7 @@ public class Servidor extends Thread {
 				ObjectInputStream entradaCli = new ObjectInputStream(conexao.getInputStream());
 				Object objeto = entradaCli.readObject();
 
-				if(objeto.getClass().getSimpleName().equals("Dispositivo")){
+				if(objeto.getClass().getSimpleName().equals("Dispositivo")){System.out.println("zzzzzzzz");
 					Dispositivo dispositivoIni = (Dispositivo) objeto;
 					BLLDispositivo bllDispositivo = new BLLDispositivo();
 
@@ -48,11 +48,11 @@ public class Servidor extends Thread {
 								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()))
 							this.dispositivo = list.get(i);
 							this.auth = true;
+							System.out.println("Autenticou!");
 					}
 
 				}
-				else if(objeto.getClass().getSimpleName().equals("Comando") && auth){
-
+				else if(objeto.getClass().getSimpleName().equals("Comando") && this.auth){
 					Comando comando = (Comando) objeto;
 
 					if(comando.getParametros().equals("sair")){
