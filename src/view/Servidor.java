@@ -1,5 +1,11 @@
 package view;
 
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
+import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,6 +28,10 @@ public class Servidor extends Thread {
 	boolean auth = false;
 	Dispositivo dispositivo;
 
+	static Image image = Toolkit.getDefaultToolkit().getImage("src/java.gif");
+
+	static TrayIcon trayIcon = new TrayIcon(image, "dsiServer");
+
 	/**
 	 * @param args
 	 */
@@ -35,7 +45,7 @@ public class Servidor extends Thread {
 				ObjectInputStream entradaCli = new ObjectInputStream(conexao.getInputStream());
 				Object objeto = entradaCli.readObject();
 
-				if(objeto.getClass().getSimpleName().equals("Dispositivo")){System.out.println("zzzzzzzz");
+				if(objeto.getClass().getSimpleName().equals("Dispositivo")){
 					Dispositivo dispositivoIni = (Dispositivo) objeto;
 					BLLDispositivo bllDispositivo = new BLLDispositivo();
 
@@ -47,10 +57,18 @@ public class Servidor extends Thread {
 						if(list.get(i).getPass() == dispositivoIni.getPass()
 								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()))
 							this.dispositivo = list.get(i);
-							this.auth = true;
-							System.out.println("Autenticou!");
+						this.auth = true;
+						if (SystemTray.isSupported()) {
+							SystemTray tray = SystemTray.getSystemTray();
+							trayIcon.setImageAutoSize(true);
+							try {
+								tray.add(trayIcon);
+								trayIcon.displayMessage("Conexão!", "Dispositivo " + list.get(i).getMac() + " conectado.", TrayIcon.MessageType.INFO);
+							} catch (AWTException e) {
+								System.err.println("TrayIcon could not be added.");
+							}
+						}
 					}
-
 				}
 				else if(objeto.getClass().getSimpleName().equals("Comando") && this.auth){
 					Comando comando = (Comando) objeto;
@@ -60,12 +78,12 @@ public class Servidor extends Thread {
 					}
 
 					else{
-						
+
 						Historico historico = new Historico();
 						historico.setDataComando(new Date(System.currentTimeMillis()));
 						historico.setParametro(comando.getParametros());
 						historico.setCodigoDispositivo(dispositivo.getCodigo());
-						
+
 						BLLHistorico bllHistorico = new BLLHistorico();
 						bllHistorico.salvar(historico);
 
