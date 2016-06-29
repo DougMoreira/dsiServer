@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -18,9 +19,12 @@ import controle.BLLDispositivo;
 import controle.BLLHistorico;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.awt.GridLayout;
+import javax.swing.ImageIcon;
 
 
 public class ViewPrincipal extends JFrame {
@@ -38,7 +42,7 @@ public class ViewPrincipal extends JFrame {
 	public ViewPrincipal() {
 		super("dsiServer");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 493, 157);
+		setBounds(100, 100, 583, 148);
 		contentPane = new JPanel();
 
 		JPanel panelDispositivo = new JPanel();
@@ -55,6 +59,7 @@ public class ViewPrincipal extends JFrame {
 
 		// Botão Adicionar
 		JButton btnAdicionarDispositivo = new JButton("Adicionar");
+		btnAdicionarDispositivo.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_add_circle_black_24dp/web/ic_add_circle_black_24dp_1x.png"));
 		btnAdicionarDispositivo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				boolean volta = true;
@@ -88,17 +93,20 @@ public class ViewPrincipal extends JFrame {
 					}
 				}
 				Dispositivo dispositivo = new Dispositivo(tf.getText(), pass);
+				dispositivo.setStatus("ATIVO");
 				BLLDispositivo bllDispositivo = new BLLDispositivo();
 				bllDispositivo.salvar(dispositivo);
 				JOptionPane.showMessageDialog(null, "Dispositivo Cadastrado");
 
 			}
 		});
+		panelDispositivo.setLayout(new GridLayout(0, 4, 0, 0));
 		panelDispositivo.add(btnAdicionarDispositivo);
 
 		// Botão Remover Dispositivos
-		JButton btnRemoverDispositivo = new JButton("Remover");
-		btnRemoverDispositivo.addActionListener(new ActionListener() {
+		JButton btnDesativarDispositivo = new JButton("Desativar");
+		btnDesativarDispositivo.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_block_black_24dp/web/ic_block_black_24dp_1x.png"));
+		btnDesativarDispositivo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JTextField tf = new JTextField();
 				boolean volta = true;
@@ -118,14 +126,69 @@ public class ViewPrincipal extends JFrame {
 
 				BLLDispositivo bllDispositivo = new BLLDispositivo();
 				Dispositivo dispositivo = bllDispositivo.buscarPorCodigo(id);
-				bllDispositivo.excluir(dispositivo);
-				JOptionPane.showMessageDialog(null, "Dispositivo Removido");
+				if(dispositivo == null) {
+					JOptionPane.showMessageDialog(null, "A ID inserida não existe no banco de dados.");
+				} 
+				else {
+
+					if(dispositivo.getStatus().equals("ATIVO")) {
+						dispositivo.setStatus("INATIVO");
+						bllDispositivo.update(dispositivo);
+						JOptionPane.showMessageDialog(null, "Dispositivo Desativado");
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "Dispositivo já se encontra desativado.");
+					}
+
+				}
 			}
 		});
-		panelDispositivo.add(btnRemoverDispositivo);
+		panelDispositivo.add(btnDesativarDispositivo);
+
+		// Botão Reativar Dispositivos
+		JButton btnReativarDispositivo = new JButton("Reativar");
+		btnReativarDispositivo.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_undo_black_24dp/web/ic_undo_black_24dp_1x.png"));
+		btnReativarDispositivo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JTextField tf = new JTextField();
+				boolean volta = true;
+				int id = 0;
+
+				while(volta){
+					try{
+						int okCxxl = JOptionPane.showConfirmDialog(null, tf, "Insira a ID ", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+						id = Integer.parseInt(String.valueOf(tf.getText()));
+						volta = false;
+					}
+					catch(Exception e){
+						volta = true;
+						JOptionPane.showMessageDialog(null, "Insira apenas números!");
+					}
+				}
+
+				BLLDispositivo bllDispositivo = new BLLDispositivo();
+				Dispositivo dispositivo = bllDispositivo.buscarPorCodigo(id);
+				if(dispositivo == null) {
+					JOptionPane.showMessageDialog(null, "A ID inserida não existe no banco de dados.");
+				} 
+				else {
+					if(dispositivo.getStatus().equals("INATIVO")) {
+						dispositivo.setStatus("ATIVO");
+						bllDispositivo.update(dispositivo);
+						JOptionPane.showMessageDialog(null, "Dispositivo Reativado");
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "Dispositivo já se encontra ativado.");
+					}
+				}
+			}
+		});
+		panelDispositivo.add(btnReativarDispositivo);
+
 
 		// Botão Listar Dispositivos
-		JButton btnListarDispositivos = new JButton("Listar Dispositivos");
+		JButton btnListarDispositivos = new JButton("Listar");
+		btnListarDispositivos.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_android_black_24dp/web/ic_android_black_24dp_1x.png"));
 		btnListarDispositivos.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -135,13 +198,14 @@ public class ViewPrincipal extends JFrame {
 					}
 				};
 
-				dtm.addColumn("Código Dispositivo");
+				dtm.addColumn("Dispositivo");
 				dtm.addColumn("MAC Adress");
+				dtm.addColumn("Status");
 
 				BLLDispositivo bllDispositivo = new BLLDispositivo();
 				List<Dispositivo> list = bllDispositivo.listar();
 				for(int i = 0; i < list.size(); i++){
-					dtm.addRow(new String[] {String.valueOf(list.get(i).getCodigo()), list.get(i).getMac()});
+					dtm.addRow(new String[] {String.valueOf(list.get(i).getCodigo()), list.get(i).getMac(), list.get(i).getStatus()});
 
 				}
 
@@ -155,15 +219,23 @@ public class ViewPrincipal extends JFrame {
 				dialog.setVisible(true);
 
 				JTable tabela = new JTable(dtm);
+				tabela.setPreferredScrollableViewportSize(new Dimension(400,400));
+				tabela.getColumnModel().getColumn(0).setPreferredWidth(70);
+				tabela.getColumnModel().getColumn(1).setPreferredWidth(150);
+				tabela.getColumnModel().getColumn(2).setPreferredWidth(100); 
+
 				tabela.setVisible(true);
 
-				dialog.add(tabela);
+				JScrollPane scroll = new JScrollPane(tabela);
+
+				dialog.getContentPane().add(scroll);
 			}
 		});
 		panelDispositivo.add(btnListarDispositivos);
 
 		// Botão Listar Histórico
 		JButton btnListarHistorico = new JButton("Listar Histórico");
+		btnListarHistorico.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_view_list_black_24dp/web/ic_view_list_black_24dp_1x.png"));
 		btnListarHistorico.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -178,7 +250,7 @@ public class ViewPrincipal extends JFrame {
 						}
 					};
 
-					dtm.addColumn("Código Dispositivo");
+					dtm.addColumn("Dispositivo");
 					dtm.addColumn("Comando");
 					dtm.addColumn("Data");
 
@@ -196,19 +268,26 @@ public class ViewPrincipal extends JFrame {
 					dialog.setVisible(true);
 
 					JTable tabela = new JTable(dtm);
+					tabela.getColumnModel().getColumn(0).setPreferredWidth(70);
+					tabela.getColumnModel().getColumn(1).setPreferredWidth(400); 
+					tabela.getColumnModel().getColumn(0).setPreferredWidth(70);
+					JScrollPane scroll = new JScrollPane(tabela);
+
 					tabela.setVisible(true);
 
-					dialog.add(tabela);
+					dialog.getContentPane().add(scroll);
 				}
 				else {
 					JOptionPane.showMessageDialog(null, "Não há dados no histórico.");
 				}
 			}
 		});
+		panelComandos.setLayout(new GridLayout(0, 2, 0, 0));
 		panelComandos.add(btnListarHistorico);
 
 		// Botão Apagar Histórico
 		JButton btnApagarHistorico = new JButton("Apagar Histórico");
+		btnApagarHistorico.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_delete_black_24dp/web/ic_delete_black_24dp_1x.png"));
 		btnApagarHistorico.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 

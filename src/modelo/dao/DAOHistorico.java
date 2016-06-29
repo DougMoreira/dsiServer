@@ -74,7 +74,7 @@ public class DAOHistorico implements IDAOCrud<Historico> {
 		Historico entidade = null;
 		String sql;
 		try {
-			sql = "select * from historico order by cod_historico;";
+			sql = "select * from historico order by data_comando desc;";
 			consulta = conexao.createStatement();
 			resultado = consulta.executeQuery(sql);
 			while (resultado.next()) {

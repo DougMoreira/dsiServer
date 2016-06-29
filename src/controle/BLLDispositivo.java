@@ -18,6 +18,10 @@ public class BLLDispositivo implements IBLLCrud<Dispositivo> {
 	public List<Dispositivo> listar() {
 		return new DAODispositivo().listar();
 	}
+	
+	public void update(Dispositivo entidade) {
+		new DAODispositivo().update(entidade);
+	}
 
 	public Dispositivo buscarPorCodigo(int codigo) {
 		return new DAODispositivo().buscarPorCodigo(codigo);

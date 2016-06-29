@@ -45,6 +45,7 @@ public class Servidor extends Thread {
 				ObjectInputStream entradaCli = new ObjectInputStream(conexao.getInputStream());
 				Object objeto = entradaCli.readObject();
 
+				// Se o objeto serializado for do tipo Dispositivo, esse bloco executará
 				if(objeto.getClass().getSimpleName().equals("Dispositivo")){
 					Dispositivo dispositivoIni = (Dispositivo) objeto;
 					BLLDispositivo bllDispositivo = new BLLDispositivo();
@@ -58,27 +59,35 @@ public class Servidor extends Thread {
 								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()))
 							this.dispositivo = list.get(i);
 						this.auth = true;
+						
+						// Ativa o SystemTray e exibe balão informando conexão
 						if (SystemTray.isSupported()) {
 							SystemTray tray = SystemTray.getSystemTray();
 							trayIcon.setImageAutoSize(true);
 							try {
+								tray.remove(trayIcon);
 								tray.add(trayIcon);
 								trayIcon.displayMessage("Conexão!", "Dispositivo " + list.get(i).getMac() + " conectado.", TrayIcon.MessageType.INFO);
+								
 							} catch (AWTException e) {
 								System.err.println("TrayIcon could not be added.");
 							}
 						}
 					}
 				}
+				
+				// Verificação do objeto e de autenticação
 				else if(objeto.getClass().getSimpleName().equals("Comando") && this.auth){
 					Comando comando = (Comando) objeto;
 
+					// Caso o parâmetro do comando seja "sair", a conexão é encerrada
 					if(comando.getParametros().equals("sair")){
 						conexao.close();
 					}
 
 					else{
 
+						// Os dados do dispositivo e do comando são armazenados no histórico
 						Historico historico = new Historico();
 						historico.setDataComando(new Date(System.currentTimeMillis()));
 						historico.setParametro(comando.getParametros());
@@ -87,8 +96,10 @@ public class Servidor extends Thread {
 						BLLHistorico bllHistorico = new BLLHistorico();
 						bllHistorico.salvar(historico);
 
+						// Esta linha se comunica com o terminal e envia os comandos
 						Process proc = Runtime.getRuntime().exec(comando.getParametros());
 
+						// Aqui a saída do terminal é lida
 						BufferedReader reader =  
 								new BufferedReader(new InputStreamReader(proc.getInputStream()));
 

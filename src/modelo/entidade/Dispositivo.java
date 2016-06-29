@@ -6,6 +6,7 @@ public class Dispositivo implements Serializable {
 	private int codigo;
 	private String mac;
 	private int pass;
+	private String status;
 	
 	public Dispositivo(String mac, int pass){
 		this.mac = mac;
@@ -29,5 +30,13 @@ public class Dispositivo implements Serializable {
 	}
 	public void setCodigo(int codigo) {
 		this.codigo = codigo;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 }

@@ -15,10 +15,11 @@ public class DAODispositivo implements IDAOCrud<Dispositivo> {
 		int codigo = 0;
 		String sql;
 		try {
-			sql = "insert into dispositivo(mac_dispositivo, pass_dispositivo) values(?, ?);";
+			sql = "insert into dispositivo(mac_dispositivo, pass_dispositivo, status) values(?, ?, ?);";
 			sqlParametro = conexao.prepareStatement(sql);
 			sqlParametro.setString(1, entidade.getMac());
 			sqlParametro.setInt(2, entidade.getPass());
+			sqlParametro.setString(3, entidade.getStatus());
 			sqlParametro.executeUpdate();
 			sql = "select last_insert_id() as cod_dispositivo";
 			sqlParametro = conexao.prepareStatement(sql);
@@ -74,12 +75,14 @@ public class DAODispositivo implements IDAOCrud<Dispositivo> {
 		Dispositivo entidade = null;
 		String sql;
 		try {
+			// Traz como resultado todos os dispositivos
 			sql = "select * from dispositivo order by cod_dispositivo;";
 			consulta = conexao.createStatement();
 			resultado = consulta.executeQuery(sql);
 			while (resultado.next()) {
 				entidade = new Dispositivo(resultado.getString("mac_dispositivo"), resultado.getInt("pass_dispositivo"));
 				entidade.setCodigo(resultado.getInt("cod_dispositivo"));
+				entidade.setStatus(resultado.getString("status"));
 				lista.add(entidade);
 			}
 		} catch (SQLException e) {
@@ -94,6 +97,32 @@ public class DAODispositivo implements IDAOCrud<Dispositivo> {
 			}
 		}
 		return lista;
+	}
+
+	public void update(Dispositivo dispositivo){
+		Connection conexao = new Conexao().geraConexao();
+		PreparedStatement sqlParametro = null;
+		String sql;
+		try {
+			// Faz a atualização de Status do dispositivo
+			sql = "update dispositivo set status = '" + dispositivo.getStatus() + "' where cod_dispositivo = " + dispositivo.getCodigo() + ";";
+			
+			sqlParametro = conexao.prepareStatement(sql); // Prepara a query para ser executada
+			sqlParametro.executeUpdate(sql); // Executa a query
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				sqlParametro.close();
+				conexao.close();
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
+
+
+
 	}
 
 	public Dispositivo buscarPorCodigo(int codigo) {
@@ -111,6 +140,7 @@ public class DAODispositivo implements IDAOCrud<Dispositivo> {
 			if (resultado.next()) {
 				entidade = new Dispositivo(resultado.getString("mac_dispositivo"), resultado.getInt("pass_dispositivo"));
 				entidade.setCodigo(resultado.getInt("cod_dispositivo"));
+				entidade.setStatus(resultado.getString("status"));
 
 			}
 		} catch (SQLException e) {
