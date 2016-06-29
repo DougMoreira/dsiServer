@@ -74,7 +74,7 @@ public class DAOHistorico implements IDAOCrud<Historico> {
 		Historico entidade = null;
 		String sql;
 		try {
-			sql = "select * from historico order by data_comando desc;";
+			sql = "select * from historico order by data_comando;";
 			consulta = conexao.createStatement();
 			resultado = consulta.executeQuery(sql);
 			while (resultado.next()) {
@@ -117,7 +117,6 @@ public class DAOHistorico implements IDAOCrud<Historico> {
 				entidade.setCodigoDispositivo(resultado.getInt("cod_dispositivo"));
 				entidade.setDataComando(resultado.getDate("data_comando"));
 				entidade.setParametro(resultado.getString("parametro"));
-
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

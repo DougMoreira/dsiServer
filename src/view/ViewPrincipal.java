@@ -1,6 +1,15 @@
 package view;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.List;
+
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -15,27 +24,24 @@ import javax.swing.table.DefaultTableModel;
 import modelo.entidade.Dispositivo;
 import modelo.entidade.Historico;
 
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoFilepatternException;
+
 import controle.BLLDispositivo;
 import controle.BLLHistorico;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
-import java.awt.GridLayout;
-import javax.swing.ImageIcon;
+import controle.JGitControl;
 
 
 public class ViewPrincipal extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField tfPesquisar;
-	private int cont = 0;
+	private final static String localPath = "/home/douglas/logs";
+	private final static String remotePath = "https://github.com/DougMoreira/dsiLogs.git";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NoFilepatternException, IOException, GitAPIException {
 		new ServidorEspera().start();
 		ViewPrincipal frame = new ViewPrincipal();
+		frame.setResizable(false);
 		frame.setVisible(true);
 	}
 
@@ -43,6 +49,7 @@ public class ViewPrincipal extends JFrame {
 		super("dsiServer");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 583, 148);
+		setLocationRelativeTo(null);
 		contentPane = new JPanel();
 
 		JPanel panelDispositivo = new JPanel();
@@ -79,6 +86,7 @@ public class ViewPrincipal extends JFrame {
 
 				while(volta){
 					try{
+						// O componente JPasswordField é passado ao JOptionPane
 						int okCxl = JOptionPane.showConfirmDialog(null, pf, "Senha (apenas números)", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 						System.out.println(String.valueOf(pf.getPassword()));
 						if(pf.getPassword().toString().length() == 0);
@@ -92,12 +100,12 @@ public class ViewPrincipal extends JFrame {
 						JOptionPane.showMessageDialog(null, "Insira apenas números!");
 					}
 				}
+				// Aqui são passados os valores para o novo dispositivo e o mesmo ganha um ID quando é salvo no banco de dados
 				Dispositivo dispositivo = new Dispositivo(tf.getText(), pass);
 				dispositivo.setStatus("ATIVO");
 				BLLDispositivo bllDispositivo = new BLLDispositivo();
 				bllDispositivo.salvar(dispositivo);
 				JOptionPane.showMessageDialog(null, "Dispositivo Cadastrado");
-
 			}
 		});
 		panelDispositivo.setLayout(new GridLayout(0, 4, 0, 0));
@@ -139,7 +147,6 @@ public class ViewPrincipal extends JFrame {
 					else {
 						JOptionPane.showMessageDialog(null, "Dispositivo já se encontra desativado.");
 					}
-
 				}
 			}
 		});
@@ -214,7 +221,7 @@ public class ViewPrincipal extends JFrame {
 				dialog.setSize(400, 400);
 				dialog.setResizable(false);
 				dialog.setLocationRelativeTo(null);
-				dialog.setTitle("Histórico de Comandos");
+				dialog.setTitle("Dispositivos Cadastrados");
 				dialog.setModal(false);
 				dialog.setVisible(true);
 
@@ -255,7 +262,7 @@ public class ViewPrincipal extends JFrame {
 					dtm.addColumn("Data");
 
 					for(int i = 0; i < list.size(); i++){
-						dtm.addRow(new String[] {String.valueOf(list.get(i).getCodigoDispositivo()), list.get(i).getParametro(), String.valueOf(list.get(i).getDataComando()) });
+						dtm.addRow(new String[] {String.valueOf(list.get(i).getCodigoDispositivo()), list.get(i).getParametro(), String.valueOf(list.get(i).getDataComando().toLocaleString().substring(0, 11))});
 					}
 
 					JDialog dialog = new JDialog();
@@ -270,7 +277,7 @@ public class ViewPrincipal extends JFrame {
 					JTable tabela = new JTable(dtm);
 					tabela.getColumnModel().getColumn(0).setPreferredWidth(70);
 					tabela.getColumnModel().getColumn(1).setPreferredWidth(400); 
-					tabela.getColumnModel().getColumn(0).setPreferredWidth(70);
+					tabela.getColumnModel().getColumn(2).setPreferredWidth(70);
 					JScrollPane scroll = new JScrollPane(tabela);
 
 					tabela.setVisible(true);
@@ -282,7 +289,7 @@ public class ViewPrincipal extends JFrame {
 				}
 			}
 		});
-		panelComandos.setLayout(new GridLayout(0, 2, 0, 0));
+		panelComandos.setLayout(new GridLayout(0, 3, 0, 0));
 		panelComandos.add(btnListarHistorico);
 
 		// Botão Apagar Histórico
@@ -299,6 +306,35 @@ public class ViewPrincipal extends JFrame {
 		});
 		panelComandos.add(btnApagarHistorico);
 
+
+		// Botão Commitar Logs - GitHub
+		JButton btnCommitarLogs = new JButton("Commitar Logs");
+		btnCommitarLogs.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/git-icon-1788c-w024.png"));
+		btnCommitarLogs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					commitarLogs();
+				} catch (IOException | GitAPIException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		panelComandos.add(btnCommitarLogs);
+
+	}
+	
+	public void commitarLogs() throws IOException, NoFilepatternException, GitAPIException{
+		JGitControl gitControl = new JGitControl();
+
+		//Add files to repository
+		gitControl.addToRepo();
+		//Commit with a custom message
+		gitControl.commitToRepo("Logs");
+		//Push commits
+		gitControl.pushToRepo();
+		
+		JOptionPane.showMessageDialog(null, "O commit foi feito com sucesso!\ncommit: " + gitControl.getIdCommit());
 	}
 
 

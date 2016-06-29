@@ -5,22 +5,22 @@ import java.awt.Image;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Date;
 import java.util.List;
 
-import controle.BLLDispositivo;
-import controle.BLLHistorico;
-
 import modelo.entidade.Comando;
 import modelo.entidade.Dispositivo;
 import modelo.entidade.Historico;
+import controle.BLLDispositivo;
+import controle.BLLHistorico;
 
 public class Servidor extends Thread {
 
@@ -56,36 +56,37 @@ public class Servidor extends Thread {
 					// Faz a comparação de MAC Adress e Pass no banco de dados
 					for(int i = 0; list.size() > i; i++){
 						if(list.get(i).getPass() == dispositivoIni.getPass()
-								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()))
+								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()) 
+								&& list.get(i).getStatus().equals("ATIVO")){
 							this.dispositivo = list.get(i);
-						this.auth = true;
-						
+							this.auth = true;
+						}
+
 						// Ativa o SystemTray e exibe balão informando conexão
-						if (SystemTray.isSupported()) {
+						if (SystemTray.isSupported() && this.auth) {
 							SystemTray tray = SystemTray.getSystemTray();
 							trayIcon.setImageAutoSize(true);
 							try {
 								tray.remove(trayIcon);
 								tray.add(trayIcon);
 								trayIcon.displayMessage("Conexão!", "Dispositivo " + list.get(i).getMac() + " conectado.", TrayIcon.MessageType.INFO);
-								
+
 							} catch (AWTException e) {
 								System.err.println("TrayIcon could not be added.");
 							}
 						}
 					}
 				}
-				
+
 				// Verificação do objeto e de autenticação
 				else if(objeto.getClass().getSimpleName().equals("Comando") && this.auth){
 					Comando comando = (Comando) objeto;
 
 					// Caso o parâmetro do comando seja "sair", a conexão é encerrada
-					if(comando.getParametros().equals("sair")){
+					if(comando.getParametros().equals("sair")) {
 						conexao.close();
 					}
-
-					else{
+					else {
 
 						// Os dados do dispositivo e do comando são armazenados no histórico
 						Historico historico = new Historico();
@@ -98,17 +99,34 @@ public class Servidor extends Thread {
 
 						// Esta linha se comunica com o terminal e envia os comandos
 						Process proc = Runtime.getRuntime().exec(comando.getParametros());
+						proc.waitFor();
 
 						// Aqui a saída do terminal é lida
 						BufferedReader reader =  
 								new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
-						String line = "";
-						while((line = reader.readLine()) != null) {
-							System.out.print(line + "\n");
+						// Caminho do arquivo de logs, que recebe como nome o MAC Adress do dispositivo
+						File file = new File("/home/douglas/logs/" + dispositivo.getMac() + ".log");
+
+						// Se o arquivo ainda não existir, ele é criado nesse bloco
+						if(!file.exists()) {
+							new File("/home/douglas/logs/" + dispositivo.getMac() + ".log").createNewFile();
 						}
 
-						proc.waitFor(); 
+						FileWriter fw = new FileWriter(file, true);
+						BufferedWriter writer = new BufferedWriter(fw);
+
+						writer.write("Data: [" + historico.getDataComando() + "]\nComando: [" + comando.getParametros() + "]\n\n[INICIO da Leitura do Terminal]\n\n");
+
+						String line = "";
+						while((line = reader.readLine()) != null) {
+							writer.write(line);
+							writer.newLine();
+						}
+
+						writer.write("\n[FIM da Leitura do Terminal]\n =======================\\ DELIMITER \\======================= \n\n");
+
+						writer.close();
 
 					}
 				}
