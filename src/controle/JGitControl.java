@@ -33,16 +33,17 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
  */
 public class JGitControl {
 
-	private String localPath = "/home/douglas/logs";
-	private String remotePath = "https://github.com/DougMoreira/dsiLogs.git";
-	private Repository localRepo;
-	private Git git;
-	private CredentialsProvider cp;
-	private String name = "DougMoreira";
-	private String password = "gitdoug1";
-	private String idCommit = "";
-	private int commitTime = 0;
-	private String autorCommit = "";
+	private String localPath = "/home/douglas/logs"; // Diretório onde os arquivos de log serão criados
+	// Cada dispositivo recebe um arquivo de log com o MAC Adress como nome
+	// exemplo: 12:ak:ew:we:43:fd.log
+
+	private String remotePath = "https://github.com/DougMoreira/dsiLogs.git"; // Endereço do repositório git
+	private Repository localRepo; // Armazena repositório local
+	private Git git; // Objeto Git da API JGit
+	private CredentialsProvider cp; // Aqui será adicionado o nome de usuário e senha
+	private String name = "DougMoreira"; // Nome de usuário git
+	private String password = "********"; // Senha git
+	private String idCommit = ""; // Aqui é armazenado o id de cada commit
 
 	public JGitControl(String localPath, String remotePath) throws IOException {
 		this.localPath = localPath;
@@ -52,7 +53,7 @@ public class JGitControl {
 		git = new Git(localRepo);
 	}
 
-	public JGitControl() throws IOException{
+	public JGitControl() throws IOException{// O construtor acima é apenas uma opção, mas este aqui que é usado
 		this.localRepo = new FileRepository(localPath + "/.git");
 		cp = new UsernamePasswordCredentialsProvider(this.name, this.password);
 		git = new Git(localRepo);
@@ -67,7 +68,7 @@ public class JGitControl {
 
 	public void addToRepo() throws IOException, NoFilepatternException, GitAPIException {
 		AddCommand add = git.add();
-		add.addFilepattern(".").call();
+		add.addFilepattern(".").call(); // Aqui todos os arquivos do path local são adicionados para aguardar commit
 	}
 
 	public void commitToRepo(String message) throws IOException, NoHeadException,
@@ -86,9 +87,6 @@ public class JGitControl {
 		try {
 			Iterator<PushResult> it = pc.call().iterator();
 			if (it.hasNext()) {
-				// O seguinte formato é exibido no next() abaixo: org.eclipse.jgit.transport.PushResult@1592dd9
-				// Deseja mostrar apenas o conteúdo depois do @ [edit - mas não é esse o conteúdo buscado] 
-				System.out.println(it.next().toString());
 			}
 		} catch (InvalidRemoteException e) {
 			e.printStackTrace();
@@ -108,22 +106,6 @@ public class JGitControl {
 
 	public void setIdCommit(String idCommit) {
 		this.idCommit = idCommit;
-	}
-
-	public int getCommitTime() {
-		return commitTime;
-	}
-
-	public void setCommitTime(int commitTime) {
-		this.commitTime = commitTime;
-	}
-
-	public String getAutorCommit() {
-		return autorCommit;
-	}
-
-	public void setAutorCommit(String autorCommit) {
-		this.autorCommit = autorCommit;
 	}
 
 }

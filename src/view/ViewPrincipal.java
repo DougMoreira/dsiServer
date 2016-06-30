@@ -34,10 +34,10 @@ import controle.JGitControl;
 
 public class ViewPrincipal extends JFrame {
 
-	private JPanel contentPane;
-	private final static String localPath = "/home/douglas/logs";
-	private final static String remotePath = "https://github.com/DougMoreira/dsiLogs.git";
+	// Cada botão tem um actionListener próprio para captar o evento de clique
+	// Exceto o botão de commit, os outros estão diretamente relacionados com o banco de dados
 
+	private JPanel contentPane;
 	public static void main(String[] args) throws NoFilepatternException, IOException, GitAPIException {
 		new ServidorEspera().start();
 		ViewPrincipal frame = new ViewPrincipal();
@@ -53,10 +53,10 @@ public class ViewPrincipal extends JFrame {
 		contentPane = new JPanel();
 
 		JPanel panelDispositivo = new JPanel();
-		panelDispositivo.setBorder(BorderFactory.createTitledBorder("Dispositivo")); 
+		panelDispositivo.setBorder(BorderFactory.createTitledBorder("Dispositivo")); // "Fieldset" Dispositivo
 
 		JPanel panelComandos = new JPanel();
-		panelComandos.setBorder(BorderFactory.createTitledBorder("Comandos"));
+		panelComandos.setBorder(BorderFactory.createTitledBorder("Comandos")); // "Fieldset" Comandos
 
 		contentPane.setLayout(new BorderLayout(0, 0));
 		contentPane.add(panelDispositivo, BorderLayout.NORTH);
@@ -66,7 +66,7 @@ public class ViewPrincipal extends JFrame {
 
 		// Botão Adicionar
 		JButton btnAdicionarDispositivo = new JButton("Adicionar");
-		btnAdicionarDispositivo.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_add_circle_black_24dp/web/ic_add_circle_black_24dp_1x.png"));
+		btnAdicionarDispositivo.setIcon(new ImageIcon("img/circle_black.png"));
 		btnAdicionarDispositivo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				boolean volta = true;
@@ -86,7 +86,7 @@ public class ViewPrincipal extends JFrame {
 
 				while(volta){
 					try{
-						// O componente JPasswordField é passado ao JOptionPane
+						// O componente JPasswordField é passado ao JOptionPane para esconder os caracteres digitados
 						int okCxl = JOptionPane.showConfirmDialog(null, pf, "Senha (apenas números)", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 						System.out.println(String.valueOf(pf.getPassword()));
 						if(pf.getPassword().toString().length() == 0);
@@ -111,9 +111,9 @@ public class ViewPrincipal extends JFrame {
 		panelDispositivo.setLayout(new GridLayout(0, 4, 0, 0));
 		panelDispositivo.add(btnAdicionarDispositivo);
 
-		// Botão Remover Dispositivos
+		// Botão Desativar Dispositivos - Após inserida a ID, o dispositivo recebe status de INATIVO
 		JButton btnDesativarDispositivo = new JButton("Desativar");
-		btnDesativarDispositivo.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_block_black_24dp/web/ic_block_black_24dp_1x.png"));
+		btnDesativarDispositivo.setIcon(new ImageIcon("img/block_black.png"));
 		btnDesativarDispositivo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JTextField tf = new JTextField();
@@ -134,17 +134,17 @@ public class ViewPrincipal extends JFrame {
 
 				BLLDispositivo bllDispositivo = new BLLDispositivo();
 				Dispositivo dispositivo = bllDispositivo.buscarPorCodigo(id);
-				if(dispositivo == null) {
+				if(dispositivo == null) {// Se nenhum objeto do tipo Dispositivo for retornado, então não se faz alteração no status
 					JOptionPane.showMessageDialog(null, "A ID inserida não existe no banco de dados.");
 				} 
 				else {
-
+					// Se o dispositivo estiver como ATIVO ele entra no if e é setado como INATIVO...
 					if(dispositivo.getStatus().equals("ATIVO")) {
 						dispositivo.setStatus("INATIVO");
 						bllDispositivo.update(dispositivo);
 						JOptionPane.showMessageDialog(null, "Dispositivo Desativado");
 					}
-					else {
+					else { // ...caso contrário
 						JOptionPane.showMessageDialog(null, "Dispositivo já se encontra desativado.");
 					}
 				}
@@ -152,9 +152,9 @@ public class ViewPrincipal extends JFrame {
 		});
 		panelDispositivo.add(btnDesativarDispositivo);
 
-		// Botão Reativar Dispositivos
+		// Botão Reativar Dispositivos - Após inserida a ID, o dispositivo recebe status de ATIVO
 		JButton btnReativarDispositivo = new JButton("Reativar");
-		btnReativarDispositivo.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_undo_black_24dp/web/ic_undo_black_24dp_1x.png"));
+		btnReativarDispositivo.setIcon(new ImageIcon("img/undo_black.png"));
 		btnReativarDispositivo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JTextField tf = new JTextField();
@@ -193,9 +193,9 @@ public class ViewPrincipal extends JFrame {
 		panelDispositivo.add(btnReativarDispositivo);
 
 
-		// Botão Listar Dispositivos
+		// Botão Listar Dispositivos - Abre uma tabela com informações do dispositivo
 		JButton btnListarDispositivos = new JButton("Listar");
-		btnListarDispositivos.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_android_black_24dp/web/ic_android_black_24dp_1x.png"));
+		btnListarDispositivos.setIcon(new ImageIcon("img/android_black.png"));
 		btnListarDispositivos.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -209,6 +209,7 @@ public class ViewPrincipal extends JFrame {
 				dtm.addColumn("MAC Adress");
 				dtm.addColumn("Status");
 
+				// Popula a tabela
 				BLLDispositivo bllDispositivo = new BLLDispositivo();
 				List<Dispositivo> list = bllDispositivo.listar();
 				for(int i = 0; i < list.size(); i++){
@@ -216,6 +217,7 @@ public class ViewPrincipal extends JFrame {
 
 				}
 
+				// Cria uma nova janela e exibe a tabela
 				JDialog dialog = new JDialog();
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				dialog.setSize(400, 400);
@@ -242,7 +244,7 @@ public class ViewPrincipal extends JFrame {
 
 		// Botão Listar Histórico
 		JButton btnListarHistorico = new JButton("Listar Histórico");
-		btnListarHistorico.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_view_list_black_24dp/web/ic_view_list_black_24dp_1x.png"));
+		btnListarHistorico.setIcon(new ImageIcon("img/view_list_black.png"));
 		btnListarHistorico.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -261,10 +263,12 @@ public class ViewPrincipal extends JFrame {
 					dtm.addColumn("Comando");
 					dtm.addColumn("Data");
 
+					// Popula a tabela
 					for(int i = 0; i < list.size(); i++){
 						dtm.addRow(new String[] {String.valueOf(list.get(i).getCodigoDispositivo()), list.get(i).getParametro(), String.valueOf(list.get(i).getDataComando().toLocaleString().substring(0, 11))});
 					}
 
+					// Cria uma nova janela e exibe a tabela
 					JDialog dialog = new JDialog();
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					dialog.setSize(600, 600);
@@ -294,7 +298,7 @@ public class ViewPrincipal extends JFrame {
 
 		// Botão Apagar Histórico
 		JButton btnApagarHistorico = new JButton("Apagar Histórico");
-		btnApagarHistorico.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/ic_delete_black_24dp/web/ic_delete_black_24dp_1x.png"));
+		btnApagarHistorico.setIcon(new ImageIcon("img/delete_black.png"));
 		btnApagarHistorico.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -309,7 +313,7 @@ public class ViewPrincipal extends JFrame {
 
 		// Botão Commitar Logs - GitHub
 		JButton btnCommitarLogs = new JButton("Commitar Logs");
-		btnCommitarLogs.setIcon(new ImageIcon("/home/douglas/arquivos trabalho final lp2/git-icon-1788c-w024.png"));
+		btnCommitarLogs.setIcon(new ImageIcon("img/git.png"));
 		btnCommitarLogs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -323,17 +327,17 @@ public class ViewPrincipal extends JFrame {
 		panelComandos.add(btnCommitarLogs);
 
 	}
-	
+
 	public void commitarLogs() throws IOException, NoFilepatternException, GitAPIException{
 		JGitControl gitControl = new JGitControl();
 
-		//Add files to repository
+		//Adiciona os arquivos no repositório
 		gitControl.addToRepo();
-		//Commit with a custom message
+		//Commita com uma mensagem
 		gitControl.commitToRepo("Logs");
-		//Push commits
+		//Push - sobe os arquivos
 		gitControl.pushToRepo();
-		
+
 		JOptionPane.showMessageDialog(null, "O commit foi feito com sucesso!\ncommit: " + gitControl.getIdCommit());
 	}
 

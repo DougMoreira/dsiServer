@@ -28,12 +28,12 @@ public class Servidor extends Thread {
 	boolean auth = false;
 	Dispositivo dispositivo;
 
-	static Image image = Toolkit.getDefaultToolkit().getImage("src/java.gif");
+	static Image image = Toolkit.getDefaultToolkit().getImage("img/java.gif");
 
 	static TrayIcon trayIcon = new TrayIcon(image, "dsiServer");
 
 	/**
-	 * @param args
+	 * @autor Douglas Moreira Barcellos
 	 */
 	public Servidor(Socket s) {
 		conexao = s;
@@ -53,7 +53,7 @@ public class Servidor extends Thread {
 					// Pega a lista de todos os dispositivos cadastrados no banco de dados
 					List<Dispositivo> list = bllDispositivo.listar();
 
-					// Faz a comparação de MAC Adress e Pass no banco de dados
+					// Faz a comparação de MAC Address, Pass e Status no banco de dados
 					for(int i = 0; list.size() > i; i++){
 						if(list.get(i).getPass() == dispositivoIni.getPass()
 								&& list.get(i).getMac().equalsIgnoreCase(dispositivoIni.getMac()) 
@@ -113,6 +113,7 @@ public class Servidor extends Thread {
 							new File("/home/douglas/logs/" + dispositivo.getMac() + ".log").createNewFile();
 						}
 
+						// As próximas linha preenchem o arquivo com os comandos e repostas do terminal
 						FileWriter fw = new FileWriter(file, true);
 						BufferedWriter writer = new BufferedWriter(fw);
 

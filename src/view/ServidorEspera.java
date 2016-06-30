@@ -8,7 +8,7 @@ public class ServidorEspera extends Thread {
 	public void run(){
 		try {
 			ServerSocket s = new ServerSocket(9998);
-			while (true) {
+			while (true) { // O servidor aguarda as conexões de entrada.
 				System.out.print("Esperando alguem se conectar...");
 				Socket conexao = s.accept();
 
